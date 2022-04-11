@@ -1,0 +1,9 @@
+> Vectors can be plotted in the form [a,b,c] 
+  - They can also be in unsimplified form (e.g. [a,b,c]+[d,e,f]*g)
+    - If trying to subtract them, you need to use +-1*[a,b,c]
+  - Vectors are displayed as lines from the origin
+> Points can be plotted in the form (a,b,c)
+> Lines can be plotted in the form r=[a,b,c]+l[d,e,f]
+  - Note the use of "l" instead of lambda
+> Planes can be plotted in the form r.[a,b,c]=d
+> Perpendicular planes will plot from the position vector of the lines
