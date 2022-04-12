@@ -6,9 +6,9 @@ import matplotlib.pyplot as pyplot
 from matplotlib.widgets import TextBox
 
 #import windows
-from datastructures import Vector3D, VectorFloat, Plane3D, Line3D
+from datastructures import Vector3D, VectorFloat, Plane3D, Line3D, Point3D
 
-colours = ['red','green','blue','yellow','brown','orange','pink']
+colours = ['red','green','blue','brown','orange','pink','yellow']
 
 def getLineLinespace(positionVector, directionVector, l=1):
     x1 = (positionVector[0]+l*directionVector[0])
@@ -96,7 +96,8 @@ class MainWindow(tkinter.Tk):
         self.addButton = tkinter.Button(self.frame, text="Add entry", command=self.addEntry)
         self.rmButton = tkinter.Button(self.frame, text="Remove entry", command=self.rmEntry)
         self.showButton = tkinter.Button(self.frame, text="SHOW GRAPH", command=self.showGraph)# this will all need to be in one file (sigh)
-        self.perpendicularButton = tkinter.Button(self.frame, text="Add perpendicular line", command=self.addPerp)
+        self.perpendicularButton = tkinter.Button(self.frame, text="Add perpendicular plane", command=self.addPerp)
+        self.shortButton = tkinter.Button(self.frame, text="Add shortest distance line", command=self.addShort)
         self.infoButton = tkinter.Button(self.frame, text="Help", command=self.docs)
 
         if refill:
@@ -108,6 +109,7 @@ class MainWindow(tkinter.Tk):
         self.addButton.pack(expand=True)
         self.rmButton.pack(expand=True)
         self.perpendicularButton.pack(expand=True)
+        #self.shortButton.pack(expand=True) # THIS DOSNT WORK YET
         self.showButton.pack(expand=True)
         
         self.infoButton.pack(expand=True)
@@ -116,8 +118,7 @@ class MainWindow(tkinter.Tk):
     def addPerp(self): 
         autofill = ""
         for entry in self.entries:
-            p = entry.index(tkinter.INSERT)
-            if p: autofill = entry.get()
+            if entry.index(tkinter.INSERT)!=0: autofill = entry.get()
         PerpendicularWindow(self, autofill)
     def addPerp2(self, value): 
         #self.addEntry(value)
@@ -153,17 +154,47 @@ class MainWindow(tkinter.Tk):
         while""in t: t.remove("")
         doStuff(t)
         runMap()
+    def addShort(self):
+        autofill = ""
+        for entry in self.entries:
+            if entry.index(tkinter.INSERT)!=0: autofill = entry.get()
+        ShortestDistanceWindow(self, autofill)
+    def addShort2(self, t, a, b):
+        # try and xcept
+        toadd=""
+        if t=="Point and point":
+            v1 = findVector(a)
+            v2 = findVector(b)
+            toadd = f"r={v1}+l{v1-v2}"
+        if t=="Point and line":
+            p = findVector(a)
+            _, pv, dv = deduceWhatItIs(b)
+            toadd = f"r={v1}+l{v2-v1}"
+            toadd=f""
+        if t=="Point and point":
+            v1 = findVector(a)
+            v2 = findVector(b)
+            toadd = f"r={v1}+l{v2-v1}"
+        if t=="Line and line":
+            _, pv1, dv1 = deduceWhatItIs(a)
+            _, pv2, dv2 = deduceWhatItIs(b)
+            print(pv1,dv1,pv2,dv2)
+            tosolve = np.array([])
+
+            toadd= "None"
+        self.addEntry(toadd)
+        
+
 
 class PerpendicularWindow(tkinter.Tk):
     def __init__(self, parent, autofill):
         super().__init__()
         self.parent = parent
         self.stringValue = ""
-        self.plotPlane= True
         self.title("Add a perpedicular line")
         self.frame = tkinter.Frame(self)
         self.label1 = tkinter.Label(self.frame, text="Note: You can only plot a perdendicular plane or line to a line (using the position vector) ")
-        self.button1 = tkinter.Button(self.frame, text="Plot plane", command=self.change)
+        self.button1 = tkinter.Label(self.frame, text="Plot plane")
         self.label2 = tkinter.Label(self.frame, text="Enter Line")
         self.entry1 = tkinter.Entry(self.frame, width=30)
         self.button2 = tkinter.Button(self.frame, text="Add", command=self.submit)
@@ -179,10 +210,46 @@ class PerpendicularWindow(tkinter.Tk):
         self.parent.addPerp2(self.entry1.get())
         self.destroy()
 
-    def change(self): 
-        if self.plotPlane: self.button1.config(text="Plot line")
-        else: self.button1.config(text="Plot plane")
-        self.plotPlane = not self.plotPlane
+
+class ShortestDistanceWindow(tkinter.Tk):
+    def __init__(self, parent, autofill):
+        super().__init__()
+        self.parent = parent
+        self.stringValue = ""
+        self.title("Add a perpedicular line")
+        self.frame = tkinter.Frame(self)
+        self._1label = tkinter.Label(self.frame, text="This will add the line equation of the shortest distance between them")
+        self._2button = tkinter.Button(self.frame, text="Between line and point",command=self.switch)
+        self._3label = tkinter.Label(self.frame, text="Plot Line")
+        self._4entry = tkinter.Entry(self.frame, width=30)
+        self._4entry.insert(0,autofill)
+        self._5label = tkinter.Label(self.frame, text="Plot Line")
+        self._6entry = tkinter.Entry(self.frame, width=30)
+        self._7button = tkinter.Button(self.frame, text="Add", command=self.submit)
+        self._1label.pack()
+        self._2button.pack()
+        self._3label.pack()
+        self._4entry.pack()
+        self._5label.pack()
+        self._6entry.pack()
+        self._7button.pack()
+        self.frame.pack()
+        self.options = ["Point and line","Point and plane","Point and point","Line and line"]
+        self._3options = ["Point","Point","Point","Line"]
+        self._5options = ["Line","Plane","Point","Line"]
+        self.optionIndex = -1
+        self.switch()
+
+    def submit(self):
+        self.parent.addShort2(self.options[self.optionIndex],self._4entry.get(),self._6entry.get())
+        self.destroy()
+
+    def switch(self):
+        self.optionIndex = (self.optionIndex+1)%len(self.options)
+        self._2button.config(text=self.options[self.optionIndex])
+        self._3label.config(text=self._3options[self.optionIndex])
+        self._5label.config(text=self._5options[self.optionIndex])
+    
 class MatPlotLibController():
     def __init__(self):
         self.axislength = 15
@@ -227,6 +294,9 @@ class MatPlotLibController():
         elif line[0]=="LMPLANE":
             self.axes.text(*line[1].coords(), f"r={line[1]}+l{line[2]}+m{line[3]}", color=colours[colour_n])
             self.axes.plot_surface(*getLMPlaneSpace(line[1],line[2],line[3]), color=colours[colour_n],alpha=0.5)
+        elif line[0]=="POINT":
+            self.axes.text(*line[1].coords(), f"{line[1]}", color=colours[colour_n])
+            self.axes.scatter3D(*line[1].coords(), color=colours[colour_n])
         return colour_n+1
 
 def doStuff(listofequations):
@@ -250,9 +320,11 @@ def deduceWhatItIs(equation):
                     
         elif equation[0:3]=="r.[": # simple plane
             return ("PLANE",*getPlane(equation))
-    else: # find vector is quite a big thing
-        if "[" in equation and "]" in equation: return ("VECTOR", findVector(equation)) 
+    elif "[" in equation and "]" in equation: return ("VECTOR", findVector(equation)) 
+    elif "("==equation[0] and ")"==equation[-1]: return ("POINT", Point3D(*equation[1:-1].split(","))) 
+    
         # this bit here should be a recursive function
+    return None
     
 def getPlane(equation):
     equation = equation.translate({ord(' '):None}) 
@@ -291,17 +363,6 @@ def findVector(equation):
         tot = Vector3D(0, 0, 0)
         for part in parts: tot = tot + findVector(part)
         return tot
-    # UNTIL SUBTRACT WORKS PRPERLY
-    # if"-"in equation:
-    #     parts = equation.split("-")
-    #     first = True
-    #     for part in parts: 
-    #         if first:
-    #             first = False
-    #             tot = findVector(part)
-    #         else:
-    #             tot = tot - findVector(part)
-    #     return tot
     elif"*"in equation:
         parts = equation.split("*")
         tot = VectorFloat(1)
