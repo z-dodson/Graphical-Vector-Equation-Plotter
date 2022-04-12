@@ -2,9 +2,9 @@
 import numpy
 class Vector3D():
     """I am aware that python has classes that do this, but for me it amkes more sense to make it myself"""
-    def __init__(self, a, b, c) -> None: self.a, self.b, self.c = int(a), int(b), int(c)
-    def __str__(self) -> str: return f"[{self.a},{self.b},{self.c}]"
-    def __repr__(self) -> str: return f"[{self.a},{self.b},{self.c}]"
+    def __init__(self, a, b, c) -> None: self.a, self.b, self.c = float(a), float(b), float(c)
+    def __str__(self) -> str: return f"[{int(self.a)},{int(self.b)},{int(self.c)}]"
+    def __repr__(self) -> str: return f"[{int(self.a)},{int(self.b)},{int(self.c)}]"
     def __add__(self,other): return Vector3D(self.a+other.a, self.b+other.b, self.c+other.c)
     def __sub__(self,other): return Vector3D(self.a-other.a, self.b-other.b, self.c-other.c)
     def __mul__(self,other): return Vector3D(self.a*other.value, self.b*other.value, self.c*other.value)
@@ -64,3 +64,13 @@ class Plane3D():
     def getXvalues(self, y, z): return (self.d-(y*self.b)-(z*self.c))/self.a
     def getYvalues(self, x, z): return (self.d-(x*self.a)-(z*self.c))/self.b
     def getZvalues(self, x, y): return (self.d-(x*self.a)-(y*self.b))/self.c
+class Point3D():
+    """I am aware that python has classes that do this, but for me it amkes more sense to make it myself"""
+    def __init__(self, a, b, c) -> None: self.a, self.b, self.c = float(a), float(b), float(c)
+    def __str__(self) -> str: return f"({self.a},{self.b},{self.c})"
+    def __repr__(self) -> str: return f"({self.a},{self.b},{self.c})"
+    def __getitem__(self,i):
+        if i==0: return self.a
+        elif i==1: return self.b
+        elif i==2: return self.c
+    def coords(self): return self.a, self.b, self.c
