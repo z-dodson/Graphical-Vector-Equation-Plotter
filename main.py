@@ -10,13 +10,16 @@ from datastructures import Vector3D, VectorFloat, Plane3D, Line3D, Point3D
 
 colours = ['red','green','blue','brown','orange','pink','yellow']
 
-def getLineLinespace(positionVector, directionVector, l=1):
+def getLineLinespace(positionVector, directionVector, max):
+    length = directionVector.max()+positionVector[directionVector.maxPos()]
+    l = (max-positionVector[directionVector.maxPos()])/directionVector.max()
+    neg_l = (-max-positionVector[directionVector.maxPos()])/directionVector.max()
     x1 = (positionVector[0]+l*directionVector[0])
-    x2 = (positionVector[0]-l*directionVector[0])
+    x2 = (positionVector[0]+neg_l*directionVector[0])
     y1 = (positionVector[1]+l*directionVector[1])
-    y2 = (positionVector[1]-l*directionVector[1])
+    y2 = (positionVector[1]+neg_l*directionVector[1])
     z1 = (positionVector[2]+l*directionVector[2])
-    z2 = (positionVector[2]-l*directionVector[2])
+    z2 = (positionVector[2]+neg_l*directionVector[2])
     return numpy.linspace(x1,x2, 2), numpy.linspace(y1,y2, 2), numpy.linspace(z1,z2, 2)
 
 def getPlaneSpace(directionVector, value):
@@ -95,10 +98,13 @@ class MainWindow(tkinter.Tk):
         self.clearButton = tkinter.Button(self.frame, text="Clear All", command=self.clear)
         self.addButton = tkinter.Button(self.frame, text="Add entry", command=self.addEntry)
         self.rmButton = tkinter.Button(self.frame, text="Remove entry", command=self.rmEntry)
-        self.showButton = tkinter.Button(self.frame, text="SHOW GRAPH", command=self.showGraph)# this will all need to be in one file (sigh)
+        self.showButton = tkinter.Button(self.frame, width=self.entryWidth, text="SHOW GRAPH", command=self.showGraph)# this will all need to be in one file (sigh)
         self.perpendicularButton = tkinter.Button(self.frame, text="Add perpendicular plane", command=self.addPerp)
         self.shortButton = tkinter.Button(self.frame, text="Add shortest distance line", command=self.addShort)
-        self.infoButton = tkinter.Button(self.frame, text="Help", command=self.docs)
+        self.axisLenText = tkinter.Label(self.frame, text="Minimum Axis Length")
+        self.axisLenEntry = tkinter.Entry(self.frame, width=(self.entryWidth//4))
+        self.axisLenEntry.insert(0,"15")
+        self.infoButton = tkinter.Button(self.frame, text="Help")
 
         if refill:
             for i in range(len(refill)):
@@ -111,7 +117,8 @@ class MainWindow(tkinter.Tk):
         self.perpendicularButton.pack(expand=True)
         #self.shortButton.pack(expand=True) # THIS DOSNT WORK YET
         self.showButton.pack(expand=True)
-        
+        self.axisLenText.pack(expand=True)
+        self.axisLenEntry.pack(expand=True)
         self.infoButton.pack(expand=True)
         self.frame.pack()
 
@@ -152,7 +159,9 @@ class MainWindow(tkinter.Tk):
     def showGraph(self):
         t=self.getData()
         while""in t: t.remove("")
-        doStuff(t)
+        try: max = int(self.axisLenEntry.get().strip())
+        except: max = 15
+        doStuff(t, max)
         runMap()
     def addShort(self):
         autofill = ""
@@ -252,7 +261,6 @@ class ShortestDistanceWindow(tkinter.Tk):
     
 class MatPlotLibController():
     def __init__(self):
-        self.axislength = 15
         self.lines = []
     def plotAxes(self):
         fig = pyplot.figure()# tight?
@@ -261,7 +269,12 @@ class MatPlotLibController():
         self.axes.set_ylabel("Y")
         self.axes.set_zlabel("Z")
         self.axes.set_title('Vector Graph Plotter')
-        self.axislength = 10
+        #self.axislength = 10
+        for thing in self.lines:# they're not all lines
+            if thing[0]=="VECTOR" and thing[1].max()>self.axislength: self.axislength=int(thing[1].max())+1
+            if thing[0]=="POINT" and thing[1].max()>self.axislength: self.axislength=int(thing[1].max())+1
+            if thing[0]=="LINE" and thing[1].max()>self.axislength: self.axislength=int(thing[1].max())+1
+                
         colour_n = 0
 
         #     if line[1].max()>self.axislength: self.axislength = line[1].max()
@@ -281,13 +294,12 @@ class MatPlotLibController():
     def addLine(self, line): self.lines.append(line)
 
     def plot(self,line, colour_n):
-        
         if line[0]=="VECTOR":
             self.axes.text(*line[1].coords(), f"{line[1]}", color=colours[colour_n])
             self.axes.plot3D(*line[1].getVectorLinespace(), colours[colour_n])
         elif line[0]=="LINE":
             self.axes.text(*line[1].coords(), f"r={line[1]}+l{line[2]}", color=colours[colour_n])
-            self.axes.plot3D(*getLineLinespace(line[1],line[2]), colours[colour_n])
+            self.axes.plot3D(*getLineLinespace(line[1],line[2], self.axislength), colours[colour_n])
         elif line[0]=="PLANE":
             self.axes.text(*line[1].coords(), f"r.{line[1]}={line[2]}", color=colours[colour_n])
             self.axes.plot_surface(*getPlaneSpace(line[1],line[2]), color=colours[colour_n],alpha=0.5)
@@ -298,9 +310,11 @@ class MatPlotLibController():
             self.axes.text(*line[1].coords(), f"{line[1]}", color=colours[colour_n])
             self.axes.scatter3D(*line[1].coords(), color=colours[colour_n])
         return colour_n+1
+    def setMax(self, max): self.axislength = max
 
-def doStuff(listofequations):
+def doStuff(listofequations, max):
     controller.reset()
+    controller.setMax(max)
     for equation in listofequations:
         try:
             n = (deduceWhatItIs(equation))

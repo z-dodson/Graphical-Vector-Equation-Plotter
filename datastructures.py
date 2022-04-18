@@ -25,6 +25,14 @@ class Vector3D():
         else:
             if self.b> self.c: max = self.b
             else: max = self.c
+        return abs(max)
+    def maxPos(self):
+        if self.a>self.b:
+            if self.a>self.c: max = 0
+            else: max = 2
+        else:
+            if self.b> self.c: max = 1
+            else: max = 2
         return max
 class VectorFloat():
     """This allows floats to be mutilplies by vectors"""
@@ -74,3 +82,19 @@ class Point3D():
         elif i==1: return self.b
         elif i==2: return self.c
     def coords(self): return self.a, self.b, self.c
+    def max(self):
+        if self.a>self.b:
+            if self.a>self.c: max = self.a
+            else: max = self.c
+        else:
+            if self.b> self.c: max = self.b
+            else: max = self.c
+        return abs(max)
+    def maxPos(self):
+        if self.a>self.b:
+            if self.a>self.c: max = 0
+            else: max = 2
+        else:
+            if self.b> self.c: max = 1
+            else: max = 2
+        return max
