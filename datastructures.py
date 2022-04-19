@@ -9,6 +9,7 @@ class Vector3D():
     def __sub__(self,other): return Vector3D(self.a-other.a, self.b-other.b, self.c-other.c)
     def __mul__(self,other): return Vector3D(self.a*other.value, self.b*other.value, self.c*other.value)
     def dot(self,other): return self.a*other.a+self.b+other.b+self.c*other.c
+    def cross(self, other): return Vector3D((self.b*other.c)-(self.c*other.b), -((self.a*other.c)-(self.c*other.a)), (self.a*other.b)-(self.b*other.a))
     def coords(self): return self.a, self.b, self.c
     def __abs__(self): return (self.a**2+self.b**2+self.c**2)**0.5
     def get(self): return self.a, self.b, self.c
@@ -98,3 +99,4 @@ class Point3D():
             if self.b> self.c: max = 1
             else: max = 2
         return max
+    def gettype(self): return "Point3D"

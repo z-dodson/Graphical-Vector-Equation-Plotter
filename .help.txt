@@ -6,4 +6,5 @@
 > Lines can be plotted in the form r=[a,b,c]+l[d,e,f]
   - Note the use of "l" instead of lambda
 > Planes can be plotted in the form r.[a,b,c]=d
+> Planes can be plotted in the form r=[a,b,c]+l[d,e,f]+m[g,h,i]
 > Perpendicular planes will plot from the position vector of the lines

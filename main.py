@@ -22,35 +22,31 @@ def getLineLinespace(positionVector, directionVector, max):
     z2 = (positionVector[2]+neg_l*directionVector[2])
     return numpy.linspace(x1,x2, 2), numpy.linspace(y1,y2, 2), numpy.linspace(z1,z2, 2)
 
-def getPlaneSpace(directionVector, value):
+def getPlaneSpace(normalVector, value, axisLen):
     detail = 10
-    line = Plane3D(*directionVector.get(), value.value)
-    if directionVector[2]!=0:
-        Xvalues = numpy.linspace(-5,5,detail)
-        Yvalues = numpy.linspace(-5,5,detail)
+    line = Plane3D(*normalVector.get(), value.value)
+    if normalVector[2]!=0:
+        Xvalues = numpy.linspace(-axisLen,axisLen,detail)
+        Yvalues = numpy.linspace(-axisLen,axisLen,detail)
         X,Y = numpy.meshgrid(Xvalues,Yvalues)
-        #def func_Z(x,y): return (value.value - (x*directionVector[0])-(y*directionVector[1]))/directionVector[2]
         Z = line.getZvalues(X,Y)
-    elif directionVector[1]!=0:
-        Xvalues = numpy.linspace(-5,5,detail)
-        Zvalues = numpy.linspace(-5,5,detail)
+    elif normalVector[1]!=0:
+        Xvalues = numpy.linspace(-axisLen,axisLen,detail)
+        Zvalues = numpy.linspace(-axisLen,axisLen,detail)
         X,Z = numpy.meshgrid(Xvalues,Zvalues)
         Y = line.getYvalues(X,Z)
-    elif directionVector[0]!=0:
-        Yvalues = numpy.linspace(-5,5,detail)
-        Zvalues = numpy.linspace(-5,5,detail)
+    elif normalVector[0]!=0:
+        Yvalues = numpy.linspace(-axisLen,axisLen,detail)
+        Zvalues = numpy.linspace(-axisLen,axisLen,detail)
         Y,Z = numpy.meshgrid(Yvalues,Zvalues)
         X = line.getYvalues(Y,Z)
     else: 
         alertInvalid()
     return X,Y,Z
-def getLMPlaneSpace(directionVector, value):
-    detail = 10
-    line = Plane3D(*directionVector.get(), value.value)
-    Xvalues = numpy.linspace(-5,5,detail)
-    Yvalues = numpy.linspace(-5,5,detail)
-    X,Y = numpy.meshgrid(Xvalues,Yvalues)
-    #def func_Z(x,y): return (value.value - (x*directionVector[0])-(y*directionVector[1]))/directionVector[2]
+def getLMPlaneSpace(positionVector, lamdaVector, muVector,a):
+    normalVector = lamdaVector.cross(muVector)
+    value = VectorFloat(positionVector.dot(normalVector))
+    return getPlaneSpace(normalVector, value,a)
 
 def alertInvalid(): tkinter.messagebox.showinfo('Invalid input','The input you gave was not recognised')
 class MainWindow(tkinter.Tk):
@@ -94,13 +90,13 @@ class MainWindow(tkinter.Tk):
         if refill:
             for i in range(len(refill)):
                 self.entries[i].insert(0,refill[i])
-        self.label1.pack(expand=True)  # scrolled text
-        for b in self.entries: b.pack(expand=True)  # do not disturb
+        self.label1.pack(expand=True) 
+        for b in self.entries: b.pack(expand=True)
         self.clearButton.pack(expand=True)
         self.addButton.pack(expand=True)
         self.rmButton.pack(expand=True)
         self.perpendicularButton.pack(expand=True)
-        #self.shortButton.pack(expand=True) # THIS DOSNT WORK YET
+        # self.shortButton.pack(expand=True) # THIS DOSNT WORK FULLY YET?
         self.showButton.pack(expand=True)
         self.axisLenText.pack(expand=True)
         self.axisLenEntry.pack(expand=True)
@@ -159,23 +155,23 @@ class MainWindow(tkinter.Tk):
         if t=="Point and point":
             v1 = findVector(a)
             v2 = findVector(b)
+            if v1.gettype()=="Point3D": v1 = Vector3D(*v1.coords())
+            if v2.gettype()=="Point3D": v2 = Vector3D(*v1.coords())
             toadd = f"r={v1}+l{v1-v2}"
-        if t=="Point and line":
-            p = findVector(a)
-            _, pv, dv = deduceWhatItIs(b)
-            toadd = f"r={v1}+l{v2-v1}"
-            toadd=f""
-        if t=="Point and point":
+        # if t=="Point and line":
+        #     p = findVector(a)
+        #     _, pv, dv = deduceWhatItIs(b)
+        #     toadd = f"r={p}+l{v2-v1}"
+        if t=="Point and plane":
             v1 = findVector(a)
-            v2 = findVector(b)
-            toadd = f"r={v1}+l{v2-v1}"
-        if t=="Line and line":
-            _, pv1, dv1 = deduceWhatItIs(a)
-            _, pv2, dv2 = deduceWhatItIs(b)
-            print(pv1,dv1,pv2,dv2)
-            tosolve = np.array([])
-
-            toadd= "None"
+            _, pv, lv,mv = deduceWhatItIs(b)
+            toadd = f"r={v1}+l{lv.cross(mv)}"
+        # if t=="Line and line":  COMPLEX
+        #     _, pv1, dv1 = deduceWhatItIs(a)
+        #     _, pv2, dv2 = deduceWhatItIs(b)
+        #     toadd = f"r={v1}+l{v2-v1}"
+        #     # print(pv1,dv1,pv2,dv2)
+        #     # tosolve = np.array([])
         self.addEntry(toadd)
         
 
@@ -228,9 +224,12 @@ class ShortestDistanceWindow(tkinter.Tk):
         self._6entry.pack()
         self._7button.pack()
         self.frame.pack()
-        self.options = ["Point and line","Point and plane","Point and point","Line and line"]
-        self._3options = ["Point","Point","Point","Line"]
-        self._5options = ["Line","Plane","Point","Line"]
+        # self.options = ["Point and line","Point and plane","Point and point","Line and line"]
+        # self._3options = ["Point","Point","Point","Line"]
+        # self._5options = ["Line","Plane (with lamda, mu)","Point","Line"]
+        self.options = ["Point and plane","Point and point"]
+        self._3options = ["Point","Point"]
+        self._5options = ["Plane (with lamda, mu)","Point"]
         self.optionIndex = -1
         self.switch()
 
@@ -287,10 +286,10 @@ class MatPlotLibController():
             self.axes.plot3D(*getLineLinespace(line[1],line[2], self.axislength), colours[colour_n])
         elif line[0]=="PLANE":
             self.axes.text(*line[1].coords(), f"r.{line[1]}={line[2]}", color=colours[colour_n])
-            self.axes.plot_surface(*getPlaneSpace(line[1],line[2]), color=colours[colour_n],alpha=0.5)
+            self.axes.plot_surface(*getPlaneSpace(line[1],line[2], self.axislength), color=colours[colour_n],alpha=0.5)
         elif line[0]=="LMPLANE":
             self.axes.text(*line[1].coords(), f"r={line[1]}+l{line[2]}+m{line[3]}", color=colours[colour_n])
-            self.axes.plot_surface(*getLMPlaneSpace(line[1],line[2],line[3]), color=colours[colour_n],alpha=0.5)
+            self.axes.plot_surface(*getLMPlaneSpace(line[1],line[2],line[3], self.axislength), color=colours[colour_n],alpha=0.5)
         elif line[0]=="POINT":
             self.axes.text(*line[1].coords(), f"{line[1]}", color=colours[colour_n])
             self.axes.scatter3D(*line[1].coords(), color=colours[colour_n])
@@ -301,11 +300,12 @@ def doStuff(listofequations, max):
     controller.reset()
     controller.setMax(max)
     for equation in listofequations:
-        try:
+        #try:
+        if 1:
             n = (deduceWhatItIs(equation))
             if n: controller.addLine(n)
             else: alertInvalid()
-        except: alertInvalid()
+        #except: alertInvalid()
         
 def deduceWhatItIs(equation):
     """I feel like this could be a big function"""
@@ -314,7 +314,7 @@ def deduceWhatItIs(equation):
         if equation[0:2]=="r=": # equation or lambda mu plane
             if "l"in equation:
                 if "m" in equation:
-                    return ("LMPLANE", *getLMplane(equation))
+                    return ("LMPLANE", *getLMPlane(equation))
                 else: return ("LINE",*getLine(equation))# LINE
                     
         elif equation[0:3]=="r.[": # simple plane
@@ -369,6 +369,8 @@ def findVector(equation):
         return tot
     elif equation[0]=="["and equation[-1]=="]": # breakout cluase
         return Vector3D(*(equation[1:-1].split(",")))
+    elif equation[0]=="("and equation[-1]==")": # breakout cluase
+        return Point3D(*(equation[1:-1].split(",")))
     else:
         return VectorFloat(equation) # int
                 
