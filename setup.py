@@ -1,4 +1,5 @@
 # Designed to work on wersion 3.10.2, I think it should work on any version of python3
+import os
 os.system("pip install mpl_toolkits")
 os.system("pip install matplotlib")
 os.system("pip install numpy")
