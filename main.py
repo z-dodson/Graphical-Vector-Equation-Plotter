@@ -64,22 +64,7 @@ class MainWindow(tkinter.Tk):
         # self.iconphoto(False, self.photo)
         self.DND = tkinter.BooleanVar()
         self.entryCount = 2
-        if 0:
-            self.menubar = tkinter.Menu(self)
-            self.filemenu = tkinter.Menu(self.menubar, tearoff=0)
-            self.filemenu.add_command(label="Dark mode", command=self.dark)
-            self.filemenu.add_command(label="Light mode", command=self.light)
-            self.filemenu.add_separator()
-            self.filemenu.add_command(label="Copy", command=self.copy)
-            self.filemenu.add_checkbutton(label="Silent", variable=self.DND, selectcolor='#961414')
-            self.filemenu.add_command(label="Run Windows Bridge", command=start_windows_bridge)
-            self.filemenu.add_separator()
-            self.filemenu.add_command(label="Restart", command=restart)
-            self.filemenu.add_command(label="Exit", command=stop)
 
-            self.menubar.add_cascade(label="Settings", menu=self.filemenu)
-
-            self.config(menu=self.menubar)
         
         # self.l2 = tkinter.Label(self, text=L2TEXT)
         # self.t1 = tkinter.scrolledtext.ScrolledText(self, wrap=tkinter.WORD, state='disabled')
@@ -104,7 +89,7 @@ class MainWindow(tkinter.Tk):
         self.axisLenText = tkinter.Label(self.frame, text="Minimum Axis Length")
         self.axisLenEntry = tkinter.Entry(self.frame, width=(self.entryWidth//4))
         self.axisLenEntry.insert(0,"15")
-        self.infoButton = tkinter.Button(self.frame, text="Help")
+        self.infoButton = tkinter.Button(self.frame, text="Help", command=self.docs)
 
         if refill:
             for i in range(len(refill)):
@@ -202,7 +187,7 @@ class PerpendicularWindow(tkinter.Tk):
         self.stringValue = ""
         self.title("Add a perpedicular line")
         self.frame = tkinter.Frame(self)
-        self.label1 = tkinter.Label(self.frame, text="Note: You can only plot a perdendicular plane or line to a line (using the position vector) ")
+        self.label1 = tkinter.Label(self.frame, text="Note: You can only plot a perdendicular plane (using the position vector) ")
         self.button1 = tkinter.Label(self.frame, text="Plot plane")
         self.label2 = tkinter.Label(self.frame, text="Enter Line")
         self.entry1 = tkinter.Entry(self.frame, width=30)
