@@ -122,7 +122,7 @@ class MainWindow(tkinter.Tk):
 
     def clear(self): self.pack(False)
     def addEntry(self, value=None): 
-        if self.entryCount<=7:
+        if self.entryCount<7:
             self.entryCount += 1
             d=self.getData()
             if value: d.append(value)
