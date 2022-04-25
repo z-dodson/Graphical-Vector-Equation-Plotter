@@ -7,7 +7,7 @@ Run the `setup.py`file or install the modules yourself (`numpy`, `matplotlib` an
 Then *close IDLE* and open `main.py` and run it.
 
 ## To use
-It's quite self explanitary, you have to enter the vectors in a ceratin way (based on A-Level Further Maths), see the help button in the GUI.
+It's quite self explanatory, you have to enter the vectors in a ceratin way (based on A-Level Further Maths), see the help button in the GUI.
 
 
 ## Works with
